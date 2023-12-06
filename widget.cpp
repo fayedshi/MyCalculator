@@ -110,24 +110,13 @@ void Widget::on_btnEqual_clicked()
     // verifyExpression()
     parseExpression(expr,&operands,&optrs);
     // now operands stack and operators stack is loaded
-    int result= consumeStacks(&operands,&optrs);
+    int result= computeRest(&operands,&optrs);
     ui->lineEdit->setText(QString::number(result));
 }
 
 
-int Widget:: consumeStacks(QStack<int> *operands, QStack<char> *optrs){
+int Widget:: computeRest(QStack<int> *operands, QStack<char> *optrs){
     while(!optrs->isEmpty()){
-//        if(operands->isEmpty()){
-//            ui->lineEdit->setText("Invalid expression");
-//            throw "Invalid expression";
-//        }
-//        int rOprnd= operands->pop();
-//        if(operands->isEmpty()){
-//            ui->lineEdit->setText("Invalid expression");
-//            throw "Invalid expression";
-//        }
-//        int lOprnd= operands->pop();
-//        char optr= optrs->pop();
         operands->push(compute(optrs->pop(),operands->pop(), operands->pop()));
     }
     return operands->pop();
@@ -176,31 +165,7 @@ void Widget::parseExpression(QString expr, QStack<int> *operands, QStack<char> *
         }
         i++;
     }
-//    int result;
-//    if(optrs->isEmpty()){
-//        result=operands->pop();
-//    }else{
-//        result=compute(optrs->pop(),operands->pop(),operands->pop());
-//    }
-//    ui->lineEdit->setText(QString::number(result));
 }
-
-//void calculate(QStack<int> *operands, QStack<char> *optrs){
-//    char curOptr=optrs->pop();
-//    if(curOptr =='+'|| curOptr=='-'){
-//        if(!optrs->isEmpty() && optrs->top()!='(' || operands->size()==2){
-//            int result= compute(curOptr,operands->pop(),operands->pop());
-//            operands->push(result);
-//        }
-//    }else if(curOptr =='*'|| curOptr=='/'){
-//        if(!optrs->isEmpty()&& optrs->top()!='(' &&
-//                operands->size()==2 || operands->size()==2){
-//            int result= compute(curOptr,operands->pop(),operands->pop());
-//            operands->push(result);
-//        }
-//    }
-
-//}
 
 int Widget::compute(char optr, int l,int r){
     switch (optr){
