@@ -30,11 +30,23 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>341</width>
-     <height>261</height>
+     <width>371</width>
+     <height>291</height>
     </rect>
    </property>
    <layout class="QGridLayout" name="gridLayout">
+    <property name="leftMargin">
+     <number>10</number>
+    </property>
+    <property name="topMargin">
+     <number>10</number>
+    </property>
+    <property name="rightMargin">
+     <number>10</number>
+    </property>
+    <property name="bottomMargin">
+     <number>10</number>
+    </property>
     <item row="6" column="0">
      <widget class="QPushButton" name="btnLfBkt">
       <property name="minimumSize">
@@ -272,7 +284,7 @@
      </widget>
     </item>
     <item row="1" column="3">
-     <widget class="QPushButton" name="pushButton">
+     <widget class="QPushButton" name="backBtn">
       <property name="minimumSize">
        <size>
         <width>40</width>

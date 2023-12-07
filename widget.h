@@ -10,14 +10,17 @@ QT_END_NAMESPACE
 
 class Widget : public QWidget
 {
-    Q_OBJECT
+    Q_OBJECT;
 
 public:
     Widget(QWidget *parent = nullptr);
     ~Widget();
-    void parseExpression(QString expr, QStack<int> *oprnds, QStack<char> *optrs);
+    bool verifyExpression(QString);
+    void parseAndCompute(QString expr, QStack<int> *oprnds, QStack<char> *optrs);
     int computeRest(QStack<int> *operands, QStack<char> *optrs);
     int compute(char optr,int lOprnd, int rOprnd);
+
+
 
 private slots:
     void on_btn0_clicked();
@@ -44,6 +47,10 @@ private slots:
     void on_btnDivd_clicked();
 
     void on_btnEqual_clicked();
+
+    void on_backBtn_clicked();
+
+    void on_btnClear_clicked();
 
 private:
     Ui::Widget *ui;

@@ -100,29 +100,57 @@ void Widget::on_btnDivd_clicked()
     showText(ui->btnDivd);
 }
 
-
 void Widget::on_btnEqual_clicked()
 {
     QStack<int> operands;
     QStack<char> optrs;
     QString expr= ui->lineEdit->text();
     // todo: verify expression first
-    // verifyExpression()
-    parseExpression(expr,&operands,&optrs);
+    if(!verifyExpression(expr)){
+        ui->lineEdit->setStyleSheet("background-color:rgba(255,0,0,255)");
+        return;
+    }
+    parseAndCompute(expr,&operands,&optrs);
     // now operands stack and operators stack is loaded
     int result= computeRest(&operands,&optrs);
     ui->lineEdit->setText(QString::number(result));
+    ui->lineEdit->setStyleSheet("");
 }
 
+// check consucutive operators and redudant brackets
+bool Widget::verifyExpression(QString expr){
+    int len=expr.length();
+    QStack<QChar> stk;
+    QChar pre;
+    while(len-->0){
+        QChar qch =expr.at(len);
+        if(qch==')'){
+            stk.push(qch);
+        }else if(qch=='('){
+            if(stk.isEmpty()){
+                return false;
+            }
+            stk.pop();
+        }
+        else if(qch==pre && (qch <'0' || qch >'9')){
+            return false;
+        }
+        pre=qch;
+    }
+    if(!stk.isEmpty()){
+        return false;
+    }
+    return true;
+}
 
-int Widget:: computeRest(QStack<int> *operands, QStack<char> *optrs){
+int Widget::computeRest(QStack<int> *operands, QStack<char> *optrs){
     while(!optrs->isEmpty()){
         operands->push(compute(optrs->pop(),operands->pop(), operands->pop()));
     }
     return operands->pop();
 }
 
-void Widget::parseExpression(QString expr, QStack<int> *operands, QStack<char> *optrs){
+void Widget::parseAndCompute(QString expr, QStack<int> *operands, QStack<char> *optrs){
     int i=0, len=expr.length();
     while(i<len){
         QChar qch =expr.at(i);
@@ -152,9 +180,8 @@ void Widget::parseExpression(QString expr, QStack<int> *operands, QStack<char> *
                 value= compute(optr,lOprnd, value);
             }
             operands->push(value);
-        }
-        else{
-            // push in '+-*/('
+        }else{
+            // push in operators
             // execute all when following operator is add or minus
             if(!optrs->isEmpty() && optrs->top()!='(' && (qch=='+' || qch=='-')){
                 int result= compute(optrs->pop(),operands->pop(),
@@ -182,3 +209,18 @@ int Widget::compute(char optr, int l,int r){
     }
     return 0;
 }
+
+void Widget::on_backBtn_clicked()
+{
+    QString expr=ui->lineEdit->text();
+    expr.chop(1);
+    ui->lineEdit->setText(expr);
+}
+
+
+void Widget::on_btnClear_clicked()
+{
+    ui->lineEdit->setText("");
+    ui->lineEdit->setStyleSheet("");
+}
+
