@@ -102,8 +102,7 @@ void Widget::on_btnDivd_clicked()
 
 void Widget::on_btnEqual_clicked()
 {
-    QStack<int> operands;
-    QStack<char> optrs;
+    operands.clear();
     QString expr= ui->lineEdit->text();
     // todo: verify expression first
     if(!verifyExpression(expr)){
@@ -112,8 +111,8 @@ void Widget::on_btnEqual_clicked()
     }
     parseAndCompute(expr,&operands,&optrs);
     // now operands stack and operators stack is loaded
-    int result= computeRest(&operands,&optrs);
-    ui->lineEdit->setText(QString::number(result));
+    computeRest(&operands,&optrs);
+    ui->lineEdit->setText(QString::number(*(operands.top().getValue())));
     ui->lineEdit->setStyleSheet("");
 }
 
@@ -143,14 +142,19 @@ bool Widget::verifyExpression(QString expr){
     return true;
 }
 
-int Widget::computeRest(QStack<int> *operands, QStack<char> *optrs){
+ void Widget::computeRest(QStack<MyNode> *operands, QStack<char> *optrs){
     while(!optrs->isEmpty()){
-        operands->push(compute(optrs->pop(),operands->pop(), operands->pop()));
+//        operands->push(compute(optrs->pop(),operands->pop(), operands->pop()));
+        MyNode right= operands->pop();
+        MyNode left= operands->pop();
+        int result= compute(optrs->top(),left,right);
+        MyNode node= MyNode(&left,&right,optrs->pop(),&result);
+        operands->push(node);
     }
-    return operands->pop();
+//    return operands.top();
 }
 
-void Widget::parseAndCompute(QString expr, QStack<int> *operands, QStack<char> *optrs){
+void Widget::parseAndCompute(QString expr, QStack<MyNode> *operands, QStack<char> *optrs){
     int i=0, len=expr.length();
     while(i<len){
         QChar qch =expr.at(i);
@@ -160,33 +164,50 @@ void Widget::parseAndCompute(QString expr, QStack<int> *operands, QStack<char> *
                 num.append(expr.at(i++));
             }
             i--;
-            operands->push(num.toUInt());
+            int val=num.toUInt();
+            MyNode node=MyNode(&val);
+            operands->push(node);
             // execute for multiply or divide whenever met
+
             if(!optrs->isEmpty() && (optrs->top()=='*'|| optrs->top()=='/')){
-                int result= compute(optrs->pop(),operands->pop(),operands->pop());
-                operands->push(result);
+                char optr=optrs->pop();
+                MyNode right=operands->pop();
+                MyNode left= operands->pop();
+                int result= compute(optr,left,right);
+//                node=MyNode(left,right,optr,result);
+                operands->push(MyNode(&left,&right,optr,&result));
             }
         }else if(qch==')'){
+            // todo: a bug here 8/(2*2)*2
             // evaluate expression whenever closing bracket met
             char optr= optrs->pop();
-            int value=operands->pop();
+            MyNode value=operands->pop();
+            MyNode res=value;
             if(optr!='('){
                 // expression within brackets
-                int lOprnd= operands->pop();
+                MyNode lOprnd= operands->pop();
                 if(optrs->pop()!='('){
                     ui->lineEdit->setText("Invalid expression");
     //                throw "Invalid expression";
                 }
-                value= compute(optr,lOprnd, value);
+                int num= compute(optr,lOprnd, value);
+                res=MyNode(&num);
+                res.setOptr(optr);
             }
-            operands->push(value);
+            operands->push(res);
         }else{
             // push in operators
             // execute all when following operator is add or minus
             if(!optrs->isEmpty() && optrs->top()!='(' && (qch=='+' || qch=='-')){
-                int result= compute(optrs->pop(),operands->pop(),
-                                    operands->pop());
-                operands->push(result);
+                MyNode right=operands->pop();
+                MyNode left= operands->pop();
+                char optr=optrs->pop();
+                int result= compute(optr,left,right);
+//                int result= compute(optrs->pop(),operands->pop(),
+//                                    operands->pop());
+                MyNode *node=new MyNode(&left,&right,optr,&result);
+                operands->push(*node);
+//                operands->push(result);
             }
             optrs->push(qch.toLatin1());
         }
@@ -194,16 +215,16 @@ void Widget::parseAndCompute(QString expr, QStack<int> *operands, QStack<char> *
     }
 }
 
-int Widget::compute(char optr, int l,int r){
+int Widget::compute(char optr, MyNode l,MyNode r){
     switch (optr){
         case '+':
-           return l+r;
+           return *(l.getValue())+*(r.getValue());
         case '-':
-           return l-r;
+            return *(l.getValue())-*(r.getValue());
         case '*':
-           return l*r;
+           return *(l.getValue())*(*(r.getValue()));
         case '/':
-           return l/r;
+           return *(l.getValue())/(*(r.getValue()));
         default:
             break;
     }
@@ -222,5 +243,28 @@ void Widget::on_btnClear_clicked()
 {
     ui->lineEdit->setText("");
     ui->lineEdit->setStyleSheet("");
+}
+
+
+void Widget::on_btnUndo_clicked()
+{
+    if(!operands.isEmpty()){
+        MyNode topNode= operands.pop();
+        if(topNode.getOptr()){
+            operands.push(*topNode.getLeftOprnd());
+            operands.push(*topNode.getRightOprnd());
+        }
+    }
+//    StringBuffer sb = new StringBuffer();
+//    for (Result res : stack) {
+//        Double value = res.getValue();
+//        sb.append(String.format("%.10f", value).replaceFirst("\\.?0+$", "") + " ");
+//    }
+
+    QString ops;
+    for(MyNode node: operands){
+        ops.append(QString::number(*node.getValue())).append(" ");
+    }
+    ui->lineEdit->setText(ops);
 }
 
