@@ -179,13 +179,19 @@ void Widget::parseAndCompute(QString expr, QStack<int> *operands, QStack<char> *
                 }
                 value= compute(optr,lOprnd, value);
             }
+
             operands->push(value);
+            // check previous operation
+            if(!optrs->isEmpty() && (optrs->top()=='*'||optrs->top()=='/') && operands->size()>1){
+                int result= compute(optrs->pop(),operands->pop(),operands->pop());
+                operands->push(result);
+            }
         }else{
             // push in operators
-            // execute all when following operator is add or minus
+            // execute all when following operator is add, minus or leading
+            // operation is * or /
             if(!optrs->isEmpty() && optrs->top()!='(' && (qch=='+' || qch=='-')){
-                int result= compute(optrs->pop(),operands->pop(),
-                                    operands->pop());
+                int result= compute(optrs->pop(),operands->pop(),operands->pop());
                 operands->push(result);
             }
             optrs->push(qch.toLatin1());
@@ -209,6 +215,31 @@ int Widget::compute(char optr, int l,int r){
     }
     return 0;
 }
+
+//void checkPrecedence(QStack<int> *operands, QStack<char> *optrs){
+//    if(top optr is * or /){
+//        if(optrs.size()==1){
+//            if(operands size==2){
+//                //compute
+//            }
+//        }else if(operands size==3){
+//            //compute
+//        }
+//    }else if(+ or -){
+//        if(operands.size==2){
+//            //compute
+//        }
+//    }else if(')'){
+//        if(operands.size==2){
+//            //compute
+//        }
+//        if(top optr * or /){
+//            compute
+//        }
+//    }
+//}
+//}
+
 
 void Widget::on_backBtn_clicked()
 {
