@@ -16,7 +16,7 @@ public:
     Widget(QWidget *parent = nullptr);
     ~Widget();
     bool verifyExpression(QString);
-    void parseAndCompute(QString expr, QStack<int> *oprnds, QStack<char> *optrs);
+    int parseAndCompute(QString expr, QStack<int> *oprnds, QStack<char> *optrs);
     int computeRest(QStack<int> *operands, QStack<char> *optrs);
     int compute(char optr,int lOprnd, int rOprnd);
 

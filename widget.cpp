@@ -110,10 +110,8 @@ void Widget::on_btnEqual_clicked()
         ui->lineEdit->setStyleSheet("background-color:rgba(255,0,0,255)");
         return;
     }
-    parseAndCompute(expr,&operands,&optrs);
-    // now operands stack and operators stack is loaded
-    int result= computeRest(&operands,&optrs);
-    ui->lineEdit->setText(QString::number(result));
+    int val=parseAndCompute(expr,&operands,&optrs);
+    ui->lineEdit->setText(QString::number(val));
     ui->lineEdit->setStyleSheet("");
 }
 
@@ -150,7 +148,7 @@ int Widget::computeRest(QStack<int> *operands, QStack<char> *optrs){
     return operands->pop();
 }
 
-void Widget::parseAndCompute(QString expr, QStack<int> *operands, QStack<char> *optrs){
+int Widget::parseAndCompute(QString expr, QStack<int> *operands, QStack<char> *optrs){
     int i=0, len=expr.length();
     while(i<len){
         QChar qch =expr.at(i);
@@ -188,8 +186,7 @@ void Widget::parseAndCompute(QString expr, QStack<int> *operands, QStack<char> *
             }
         }else{
             // push in operators
-            // execute all when following operator is add, minus or leading
-            // operation is * or /
+            // execute all when following operator is add, minus
             if(!optrs->isEmpty() && optrs->top()!='(' && (qch=='+' || qch=='-')){
                 int result= compute(optrs->pop(),operands->pop(),operands->pop());
                 operands->push(result);
@@ -198,6 +195,10 @@ void Widget::parseAndCompute(QString expr, QStack<int> *operands, QStack<char> *
         }
         i++;
     }
+    if(optrs->isEmpty()){
+        return operands->pop();
+    }
+    return compute(optrs->pop(),operands->pop(),operands->pop());
 }
 
 int Widget::compute(char optr, int l,int r){
