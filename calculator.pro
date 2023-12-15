@@ -13,6 +13,8 @@ SOURCES += \
     widget.cpp
 
 HEADERS += \
+    global.h \
+    mynode.h \
     widget.h
 
 FORMS += \

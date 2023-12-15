@@ -3,6 +3,7 @@
 
 #include <QWidget>
 #include <QStack>
+#include<mynode.h>
 
 QT_BEGIN_NAMESPACE
 namespace Ui { class Widget; }
@@ -13,12 +14,14 @@ class Widget : public QWidget
     Q_OBJECT;
 
 public:
+    QStack<MyNode*> operands;
+    QStack<char> optrs;
+    MyNode anyNode;
     Widget(QWidget *parent = nullptr);
     ~Widget();
     bool verifyExpression(QString);
-    int parseAndCompute(QString expr, QStack<int> *oprnds, QStack<char> *optrs);
-    int computeRest(QStack<int> *operands, QStack<char> *optrs);
-    int compute(char optr,int lOprnd, int rOprnd);
+    void parseAndCompute(QString);
+    void computeAndPack();
 
 
 
@@ -51,6 +54,8 @@ private slots:
     void on_backBtn_clicked();
 
     void on_btnClear_clicked();
+
+    void on_btnUndo_clicked();
 
 private:
     Ui::Widget *ui;

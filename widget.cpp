@@ -1,13 +1,16 @@
 #include "widget.h"
 #include "ui_widget.h"
+#include <QtDebug>
+
 
 Widget::Widget(QWidget *parent)
     : QWidget(parent)
     , ui(new Ui::Widget)
 {
     ui->setupUi(this);
-//    this->setMaximumSize(200,280);
-//    this->setMinimumSize(200,280);
+//        QStack<int> operands;
+//        QStack<char> optrs;
+    anyNode = MyNode(20);
 }
 
 Widget::~Widget()
@@ -62,7 +65,7 @@ void Widget::on_btn9_clicked()
 
 void Widget::showText(QObject *btn){
     QPushButton *qBtn=qobject_cast<QPushButton *>(btn);
-//    qDebug("here now");
+    //    qDebug("here now");
     ui->lineEdit->setText(ui->lineEdit->text()+qBtn->text());
 }
 
@@ -102,17 +105,22 @@ void Widget::on_btnDivd_clicked()
 
 void Widget::on_btnEqual_clicked()
 {
-    QStack<int> operands;
-    QStack<char> optrs;
+    operands.clear();
     QString expr= ui->lineEdit->text();
     // todo: verify expression first
     if(!verifyExpression(expr)){
         ui->lineEdit->setStyleSheet("background-color:rgba(255,0,0,255)");
         return;
     }
-    int val=parseAndCompute(expr,&operands,&optrs);
+    parseAndCompute(expr);
+    if(!optrs.isEmpty()){
+        computeAndPack();
+    }
+    int val= operands.top()->getValue();
     ui->lineEdit->setText(QString::number(val));
     ui->lineEdit->setStyleSheet("");
+
+    qDebug()<<"diapaly="<<anyNode.getLeft()->getValue();
 }
 
 // check consucutive operators and redudant brackets
@@ -141,14 +149,14 @@ bool Widget::verifyExpression(QString expr){
     return true;
 }
 
-int Widget::computeRest(QStack<int> *operands, QStack<char> *optrs){
-    while(!optrs->isEmpty()){
-        operands->push(compute(optrs->pop(),operands->pop(), operands->pop()));
-    }
-    return operands->pop();
-}
+//int Widget::computeRest(QStack<int> *operands, QStack<char> *optrs){
+//    while(!optrs->isEmpty()){
+//        operands->push(compute(optrs->pop(),operands->pop(), operands->pop()));
+//    }
+//    return operands->pop();
+//}
 
-int Widget::parseAndCompute(QString expr, QStack<int> *operands, QStack<char> *optrs){
+void Widget::parseAndCompute(QString expr){
     int i=0, len=expr.length();
     while(i<len){
         QChar qch =expr.at(i);
@@ -158,63 +166,86 @@ int Widget::parseAndCompute(QString expr, QStack<int> *operands, QStack<char> *o
                 num.append(expr.at(i++));
             }
             i--;
-            operands->push(num.toUInt());
+            MyNode *node= new MyNode(num.toUInt());
+            operands.push(node);
             // execute for multiply or divide whenever met
-            if(!optrs->isEmpty() && (optrs->top()=='*'|| optrs->top()=='/')){
-                int result= compute(optrs->pop(),operands->pop(),operands->pop());
-                operands->push(result);
+            if(!optrs.isEmpty() && (optrs.top()=='*'|| optrs.top()=='/')){
+                computeAndPack();
             }
         }else if(qch==')'){
             // evaluate expression whenever closing bracket met
-            char optr= optrs->pop();
-            int value=operands->pop();
-            if(optr!='('){
+            //            char optr= optrs->pop();
+            if(optrs.top()!='('){
                 // expression within brackets
-                int lOprnd= operands->pop();
-                if(optrs->pop()!='('){
-                    ui->lineEdit->setText("Invalid expression");
-    //                throw "Invalid expression";
-                }
-                value= compute(optr,lOprnd, value);
+                //                int lOprnd= operands->pop();
+                //                if(optrs->pop()!='('){
+                //                    ui->lineEdit->setText("Invalid expression");
+                //                    //                throw "Invalid expression";
+                //                }
+                //                value= computeAndPack(optr,lOprnd, value);
+                computeAndPack();
+                // pop left half bracket
+                optrs.pop();
+            }else{
+                // pop left half bracket
+                optrs.pop();
             }
 
-            operands->push(value);
             // check previous operation
-            if(!optrs->isEmpty() && (optrs->top()=='*'||optrs->top()=='/') && operands->size()>1){
-                int result= compute(optrs->pop(),operands->pop(),operands->pop());
-                operands->push(result);
+            if(!optrs.isEmpty() && (optrs.top()=='*'||optrs.top()=='/') && operands.size()>1){
+                computeAndPack();
+                //                operands->push(result);
             }
         }else{
             // push in operators
             // execute all when following operator is add, minus
-            if(!optrs->isEmpty() && optrs->top()!='(' && (qch=='+' || qch=='-')){
-                int result= compute(optrs->pop(),operands->pop(),operands->pop());
-                operands->push(result);
+            if(!optrs.isEmpty() && optrs.top()!='(' && (qch=='+' || qch=='-')){
+                computeAndPack();
+                //                operands->push(result);
             }
-            optrs->push(qch.toLatin1());
+            optrs.push(qch.toLatin1());
         }
         i++;
     }
-    if(optrs->isEmpty()){
-        return operands->pop();
-    }
-    return compute(optrs->pop(),operands->pop(),operands->pop());
+    // todo logic
+
 }
 
-int Widget::compute(char optr, int l,int r){
+void Widget::computeAndPack(){
+
+    MyNode* right=operands.pop();
+    MyNode* left= operands.pop();
+    int r=right->getValue();
+    int l=left->getValue();
+//    MyNode *right=new MyNode(r);
+//    MyNode *left= new MyNode(l);
+    char optr=optrs.pop();
+    int value=0;
     switch (optr){
-        case '+':
-           return l+r;
-        case '-':
-           return l-r;
-        case '*':
-           return l*r;
-        case '/':
-           return l/r;
-        default:
-            break;
+    case '+':
+        value= l+r;
+        break;
+    case '-':
+        value= l-r;
+        break;
+    case '*':
+        value= l*r;
+        break;
+    case '/':
+        value= l/r;
+        break;
+    default:
+        break;
     }
-    return 0;
+    MyNode *node=new MyNode(left,right,optr,value);
+    operands.push(node);
+    MyNode *lf=new MyNode(6);
+    MyNode *rgt=new MyNode(7);
+//    MyNode lf= MyNode(6);
+//    MyNode rgt=MyNode(7);// available only within the slot, new keyword creates object on heap
+    anyNode.setValue(42);
+    anyNode.setLeft(lf);
+    anyNode.setRight(rgt);
 }
 
 //void checkPrecedence(QStack<int> *operands, QStack<char> *optrs){
@@ -254,5 +285,27 @@ void Widget::on_btnClear_clicked()
 {
     ui->lineEdit->setText("");
     ui->lineEdit->setStyleSheet("");
+}
+
+void Widget::on_btnUndo_clicked()
+{
+    if(!operands.isEmpty()){
+        MyNode* topNode= operands.pop();
+        if(topNode->getOptr()!='\r'){
+            operands.push(topNode->getLeft());
+            operands.push(topNode->getRight());
+        }
+    }
+//    StringBuffer sb = new StringBuffer();
+//    for (Result res : stack) {
+//        Double value = res.getValue();
+//        sb.append(String.format("%.10f", value).replaceFirst("\\.?0+$", "") + " ");
+//    }
+
+    QString ops;
+    for(MyNode* node: operands){
+        ops.append(QString::number(node->getValue())).append(" ");
+    }
+    ui->lineEdit->setText(ops);
 }
 
