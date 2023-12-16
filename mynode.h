@@ -4,8 +4,12 @@
 class MyNode{
     MyNode *left;
     MyNode *right;
-    char optr;
+    char optr='\0';
+    char parentOptr='\0';
     int value;
+    bool withBrachets=false;
+    int leftBrachet=0;
+    int rightBrachet=0;
 
 public:
     MyNode(){};
@@ -37,12 +41,44 @@ public:
         this->optr = optr;
     }
 
+    char getParantOptr() {
+        return parentOptr;
+    }
+
+    void setParentOptr(char parentOptr) {
+        this->parentOptr = parentOptr;
+    }
+
     int getValue() {
         return value;
     }
 
     int setValue(int val) {
         this->value= val;
+    }
+
+    int getLeftBrachet(){
+        return leftBrachet;
+    }
+
+    void setLeftBrachet(int cnt){
+        this->leftBrachet=cnt;
+    }
+
+    int getRightBrachet(){
+        return rightBrachet;
+    }
+
+    void setRightBrachet(int cnt){
+        this->rightBrachet=cnt;
+    }
+
+    bool getWithBrachets(){
+        return withBrachets;
+    }
+
+    void setWithBrachet(bool b){
+        this->withBrachets=b;
     }
 
 };

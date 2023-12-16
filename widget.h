@@ -21,7 +21,7 @@ public:
     ~Widget();
     bool verifyExpression(QString);
     void parseAndCompute(QString);
-    void computeAndPack();
+    void computeAndPack(bool);
 
 
 

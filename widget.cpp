@@ -8,8 +8,8 @@ Widget::Widget(QWidget *parent)
     , ui(new Ui::Widget)
 {
     ui->setupUi(this);
-//        QStack<int> operands;
-//        QStack<char> optrs;
+    //        QStack<int> operands;
+    //        QStack<char> optrs;
     anyNode = MyNode(20);
 }
 
@@ -114,7 +114,7 @@ void Widget::on_btnEqual_clicked()
     }
     parseAndCompute(expr);
     if(!optrs.isEmpty()){
-        computeAndPack();
+        computeAndPack(false);
     }
     int val= operands.top()->getValue();
     ui->lineEdit->setText(QString::number(val));
@@ -170,7 +170,7 @@ void Widget::parseAndCompute(QString expr){
             operands.push(node);
             // execute for multiply or divide whenever met
             if(!optrs.isEmpty() && (optrs.top()=='*'|| optrs.top()=='/')){
-                computeAndPack();
+                computeAndPack(false);
             }
         }else if(qch==')'){
             // evaluate expression whenever closing bracket met
@@ -183,7 +183,7 @@ void Widget::parseAndCompute(QString expr){
                 //                    //                throw "Invalid expression";
                 //                }
                 //                value= computeAndPack(optr,lOprnd, value);
-                computeAndPack();
+                computeAndPack(true);
                 // pop left half bracket
                 optrs.pop();
             }else{
@@ -193,14 +193,14 @@ void Widget::parseAndCompute(QString expr){
 
             // check previous operation
             if(!optrs.isEmpty() && (optrs.top()=='*'||optrs.top()=='/') && operands.size()>1){
-                computeAndPack();
+                computeAndPack(false);
                 //                operands->push(result);
             }
         }else{
             // push in operators
             // execute all when following operator is add, minus
             if(!optrs.isEmpty() && optrs.top()!='(' && (qch=='+' || qch=='-')){
-                computeAndPack();
+                computeAndPack(false);
                 //                operands->push(result);
             }
             optrs.push(qch.toLatin1());
@@ -211,14 +211,11 @@ void Widget::parseAndCompute(QString expr){
 
 }
 
-void Widget::computeAndPack(){
-
+void Widget::computeAndPack(bool withBrachets){
     MyNode* right=operands.pop();
     MyNode* left= operands.pop();
     int r=right->getValue();
     int l=left->getValue();
-//    MyNode *right=new MyNode(r);
-//    MyNode *left= new MyNode(l);
     char optr=optrs.pop();
     int value=0;
     switch (optr){
@@ -237,12 +234,13 @@ void Widget::computeAndPack(){
     default:
         break;
     }
-    MyNode *node=new MyNode(left,right,optr,value);
-    operands.push(node);
+    MyNode *parentNode=new MyNode(left,right,optr,value);
+    parentNode->setWithBrachet(withBrachets);
+    operands.push(parentNode);
     MyNode *lf=new MyNode(6);
     MyNode *rgt=new MyNode(7);
-//    MyNode lf= MyNode(6);
-//    MyNode rgt=MyNode(7);// available only within the slot, new keyword creates object on heap
+    //    MyNode lf= MyNode(6);
+    //    MyNode rgt=MyNode(7);// available only within the slot, new keyword creates object on heap
     anyNode.setValue(42);
     anyNode.setLeft(lf);
     anyNode.setRight(rgt);
@@ -289,22 +287,33 @@ void Widget::on_btnClear_clicked()
 
 void Widget::on_btnUndo_clicked()
 {
+    MyNode* topNode;
     if(!operands.isEmpty()){
-        MyNode* topNode= operands.pop();
-        if(topNode->getOptr()!='\r'){
-            operands.push(topNode->getLeft());
-            operands.push(topNode->getRight());
+        topNode= operands.pop();
+        //        qDebug()<<"top node optr"<<topNode->getOptr();
+        if(topNode->getOptr()!='\0'){
+            //            qDebug()<<"push child nodes";
+            MyNode* left=topNode->getLeft();
+            MyNode* right=topNode->getRight();
+            left->setParentOptr(topNode->getOptr());
+            operands.push(left);
+            operands.push(right);
+            if(topNode->getWithBrachets()){
+                right->setRightBrachet(topNode->getRightBrachet()+1);
+                left->setLeftBrachet(topNode->getLeftBrachet()+1);
+            }
         }
+        delete topNode;
     }
-//    StringBuffer sb = new StringBuffer();
-//    for (Result res : stack) {
-//        Double value = res.getValue();
-//        sb.append(String.format("%.10f", value).replaceFirst("\\.?0+$", "") + " ");
-//    }
-
     QString ops;
+    //    qDebug()<<"to list value";
+
     for(MyNode* node: operands){
-        ops.append(QString::number(node->getValue())).append(" ");
+        //        qDebug()<<"node value"<<node->getValue();
+        ops=ops.append(QString::number(node->getValue())).append(node->getParantOptr());
+        //        qDebug()<<"ops"<<ops;
+
+        // todo: to print brachets with node
     }
     ui->lineEdit->setText(ops);
 }
