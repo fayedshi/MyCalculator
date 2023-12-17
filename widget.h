@@ -21,7 +21,8 @@ public:
     ~Widget();
     bool verifyExpression(QString);
     void parseAndCompute(QString);
-    void computeAndPack(bool);
+    void computeAndPack();
+    QString printNode(MyNode*);
 
 
 

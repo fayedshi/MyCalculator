@@ -53,7 +53,7 @@ public:
         return value;
     }
 
-    int setValue(int val) {
+    void setValue(int val) {
         this->value= val;
     }
 
