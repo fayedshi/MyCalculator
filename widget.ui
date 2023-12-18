@@ -331,7 +331,7 @@
        </size>
       </property>
       <property name="text">
-       <string>undo</string>
+       <string>前式</string>
       </property>
      </widget>
     </item>
