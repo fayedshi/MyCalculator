@@ -2,8 +2,8 @@
 #define MYNODE_H
 
 class MyNode{
-    MyNode *left;
-    MyNode *right;
+    MyNode *left=nullptr;
+    MyNode *right=nullptr;
     char optr='\0';
     char parentOptr='\0';
     int value;

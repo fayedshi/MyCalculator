@@ -101,23 +101,45 @@ void Widget::on_btnDivd_clicked()
 
 void Widget::on_btnEqual_clicked()
 {
-    operands.clear();
-    QString expr= ui->lineEdit->text();
+    QString expr= ui->lineEdit->text().replace(' ',"");
+
+//    if(expr.contains("+|-|*|/")){
+
+//    }
     if(!verifyExpression(expr)){
         ui->lineEdit->setStyleSheet("background-color:rgba(255,0,0,255)");
         return;
     }
+    // clean up arithmetical history before new calculation
+    while(!operands.isEmpty()){
+        freeChildNodes(operands.pop());
+    }
     parseAndCompute(expr);
     if(!optrs.isEmpty()){
+        // evaluate last expression
         computeAndPack();
     }
-    int val= operands.top()->getValue();
-    ui->lineEdit->setText(QString::number(val));
+    QString strVal= operands.isEmpty()?    expr:
+                                           QString::number(operands.top()->getValue());
+    ui->lineEdit->setText(strVal);
     ui->lineEdit->setStyleSheet("");
+}
+
+// delete nodes created with 'new' keyword
+void Widget::freeChildNodes(MyNode* node){
+    if(!node){
+        return;
+    }
+    freeChildNodes(node->getLeft());
+    freeChildNodes(node->getRight());
+    delete node;
 }
 
 // check consucutive operators and redudant brackets
 bool Widget::verifyExpression(QString expr){
+//    if(!expr.contains(QRegExp("[+\\-*\\/]"))){
+//        return false;
+//    }
     int len=expr.length();
     QStack<QChar> stk;
     QChar pre;
@@ -131,7 +153,7 @@ bool Widget::verifyExpression(QString expr){
             }
             stk.pop();
         }
-        else if(qch==pre && (qch <'0' || qch >'9')){
+        else if(!qch.isNumber()&& !pre.isNumber() && pre!='('){
             return false;
         }
         pre=qch;
@@ -304,4 +326,3 @@ QString Widget::printNode(MyNode* node){
     }
     return str;
 }
-

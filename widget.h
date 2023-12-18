@@ -23,6 +23,7 @@ public:
     void parseAndCompute(QString);
     void computeAndPack();
     QString printNode(MyNode*);
+    void freeChildNodes(MyNode*);
 
 
 
