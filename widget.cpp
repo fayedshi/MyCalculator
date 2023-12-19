@@ -102,10 +102,6 @@ void Widget::on_btnDivd_clicked()
 void Widget::on_btnEqual_clicked()
 {
     QString expr= ui->lineEdit->text().replace(' ',"");
-
-//    if(expr.contains("+|-|*|/")){
-
-//    }
     if(!verifyExpression(expr)){
         ui->lineEdit->setStyleSheet("background-color:rgba(255,0,0,255)");
         return;
