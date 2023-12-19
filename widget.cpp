@@ -8,6 +8,7 @@ Widget::Widget(QWidget *parent)
     , ui(new Ui::Widget)
 {
     ui->setupUi(this);
+    connect(ui->lineEdit, SIGNAL(returnPressed()),this, SLOT(on_btnEqual_clicked()));
 }
 
 Widget::~Widget()
